@@ -6,11 +6,13 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.andersonlopes.cursomc.domain.Cliente;
 import com.andersonlopes.cursomc.domain.ItemPedido;
 import com.andersonlopes.cursomc.domain.PagamentoComBoleto;
 import com.andersonlopes.cursomc.domain.Pedido;
 import com.andersonlopes.cursomc.domain.Produto;
 import com.andersonlopes.cursomc.domain.enums.EstadoPagamento;
+import com.andersonlopes.cursomc.repositories.ClienteRepository;
 import com.andersonlopes.cursomc.repositories.ItemPedidoRepository;
 import com.andersonlopes.cursomc.repositories.PagamentoRepository;
 import com.andersonlopes.cursomc.repositories.PedidoRepository;
@@ -30,6 +32,8 @@ public class PedidoService {
 	private ProdutoRepository produtoRepository;
 	@Autowired
 	private ItemPedidoRepository itemPedidoRepository;
+	@Autowired
+	private ClienteRepository clienteRepository;
 	
 	public Pedido find(Integer id) {
 		Optional<Pedido> foundPedido = repo.findById(id);
@@ -40,6 +44,10 @@ public class PedidoService {
 	public Pedido insert(Pedido pedido) {
 		pedido.setId(null);
 		pedido.setInstante(new Date());
+		Cliente cliente = clienteRepository.findById(pedido.getCliente().getId()).get();
+		if (cliente != null) {
+			pedido.setCliente(cliente);
+		}
 		pedido.getPagamento().setEstado(EstadoPagamento.PENDENTE);
 		pedido.getPagamento().setPedido(pedido);
 		
@@ -54,11 +62,13 @@ public class PedidoService {
 			ip.setDesconto(0.0);
 			Optional<Produto> produto = produtoRepository.findById(ip.getProduto().getId());
 			if(null != produto.get()) {
+				ip.setProduto(produto.get());
 				ip.setPreco(produto.get().getPreco());
 			}
 			ip.setPedido(pedido);
 		}
 		itemPedidoRepository.saveAll(pedido.getItens());
+		System.out.println(pedido);
 		return pedido;
 	}
 
