@@ -19,6 +19,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilter{
 	
+	private static final String EXPOSE_HEADERS = "access-control-expose-headers";
+
+	private static final String BEARER = "Bearer ";
+
+	private static final String AUTHORIZATION = "Authorization";
+
 	private AuthenticationManager authenticationManager;
 	
 	private JWTUtil jwtUtil;
@@ -47,6 +53,7 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 			Authentication authResult) throws IOException, ServletException {
 		String username = ((UserSS) authResult.getPrincipal()).getUsername();
 		String token = jwtUtil.generateToken(username);
-		response.addHeader("Authorization",  "Bearer " + token);
+		response.addHeader(AUTHORIZATION,  BEARER + token);
+		response.addHeader(EXPOSE_HEADERS, AUTHORIZATION);
 	}
 }

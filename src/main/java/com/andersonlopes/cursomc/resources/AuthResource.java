@@ -22,6 +22,7 @@ public class AuthResource {
 	
 	private static final String BEARER = "Bearer ";
 	private static final String AUTHORIZATION = "Authorization";
+	private static final String EXPOSE_HEADERS = "access-control-expose-headers";
 	@Autowired
 	private JWTUtil jwtUtil;
 	@Autowired
@@ -32,6 +33,7 @@ public class AuthResource {
 		UserSS user = UserService.authenticated();
 		String token = jwtUtil.generateToken(user.getUsername());
 		response.addHeader(AUTHORIZATION, BEARER + token);
+		response.addHeader(EXPOSE_HEADERS, AUTHORIZATION);
 		return ResponseEntity.noContent().build();
 	}
 	
