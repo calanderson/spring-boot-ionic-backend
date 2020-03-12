@@ -4,6 +4,9 @@ import java.util.Date;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 
 import com.andersonlopes.cursomc.domain.Cliente;
@@ -17,6 +20,8 @@ import com.andersonlopes.cursomc.repositories.ItemPedidoRepository;
 import com.andersonlopes.cursomc.repositories.PagamentoRepository;
 import com.andersonlopes.cursomc.repositories.PedidoRepository;
 import com.andersonlopes.cursomc.repositories.ProdutoRepository;
+import com.andersonlopes.cursomc.security.UserSS;
+import com.andersonlopes.cursomc.services.exceptions.AuthorizationException;
 import com.andersonlopes.cursomc.services.exceptions.ObjectNotFoundException;
 
 @Service
@@ -72,6 +77,16 @@ public class PedidoService {
 		itemPedidoRepository.saveAll(pedido.getItens());
 		emailService.sendOrderConfirmationHtmlEmail(pedido);
 		return pedido;
+	}
+	
+	public Page<Pedido> findPage(Integer page, Integer linesPerPage, String orderBy, String direction){
+		UserSS user = UserService.authenticated();
+		if(user == null) {
+			throw new AuthorizationException("Acesso negado");
+		}
+		PageRequest pageRequest = PageRequest.of(page, linesPerPage,Direction.valueOf(direction), orderBy); 
+		Cliente cliente = clienteRepository.findById(user.getId()).get();
+		return repo.findByCliente(cliente, pageRequest);
 	}
 
 }
