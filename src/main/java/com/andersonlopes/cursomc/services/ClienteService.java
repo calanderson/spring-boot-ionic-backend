@@ -1,6 +1,5 @@
 package com.andersonlopes.cursomc.services;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,11 +17,14 @@ import org.springframework.transaction.annotation.Transactional;
 import com.andersonlopes.cursomc.domain.Cidade;
 import com.andersonlopes.cursomc.domain.Cliente;
 import com.andersonlopes.cursomc.domain.Endereco;
+import com.andersonlopes.cursomc.domain.enums.Perfil;
 import com.andersonlopes.cursomc.domain.enums.TipoCliente;
 import com.andersonlopes.cursomc.dto.ClienteDTO;
 import com.andersonlopes.cursomc.dto.ClienteNewDTO;
 import com.andersonlopes.cursomc.repositories.ClienteRepository;
 import com.andersonlopes.cursomc.repositories.EnderecoRepository;
+import com.andersonlopes.cursomc.security.UserSS;
+import com.andersonlopes.cursomc.services.exceptions.AuthorizationException;
 import com.andersonlopes.cursomc.services.exceptions.DataIntegrityException;
 import com.andersonlopes.cursomc.services.exceptions.ObjectNotFoundException;
 
@@ -37,6 +39,11 @@ public class ClienteService {
 	private BCryptPasswordEncoder bpe;
 	
 	public Cliente find(Integer id) {
+		UserSS user = UserService.authenticated();
+		if(user == null || !user.hasRole(Perfil.ADMIN) && !id.equals(user.getId())) {
+			throw new AuthorizationException("Acesso Negado");
+		}
+		
 		Optional<Cliente> foundCliente = clienteRepository.findById(id);
 		return foundCliente.orElseThrow(() -> new ObjectNotFoundException("Objeto não encontrado! Id: " + id 
 				+ ", Tipo: " + Cliente.class.getName()));
